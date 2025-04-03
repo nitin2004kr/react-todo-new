@@ -58,7 +58,7 @@ function AddTodayTaskList() {
           {/* priority  */}
           <div className="mx-2 mt-3">
             <label className="text-zinc-900 font-semibold text-xl block">
-              Priority
+              Priority 
             </label>
             <div className="flex gap-3 items-center">
               <Box className="w-full border-2 border-zinc-500 rounded-sm text-zinc-800 text-xm px-2 py-1  w-full mt-2 focus:shadow-xl">
