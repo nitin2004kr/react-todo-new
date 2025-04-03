@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+*{ 
+  /* margin: 0; */
+  /* padding: 0; */
+  box-sizing: border-box;
+}
+
+html,body{
+  height: 100%;
+  width: 100%;
+}
+
+
+.sidebarFilter::placeholder{
+  font-size: 15px;
+  font-weight: 450;
+}
+
+
+
+@media (max-width: 767px) {
+  .sidebar_filter_search_icon {
+    display: none; 
+  }
+  .sidebar_filter_search_input{
+    padding-left: 3px;
+  }
+}
