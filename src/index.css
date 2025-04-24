@@ -1,18 +1,16 @@
 @import "tailwindcss";
 
-*{ 
-  /* margin: 0; */
-  /* padding: 0; */
+* {
   box-sizing: border-box;
 }
 
-html,body{
+html,
+body {
   height: 100%;
   width: 100%;
 }
 
-
-.sidebarFilter::placeholder{
+.sidebarFilter::placeholder {
   font-size: 15px;
   font-weight: 450;
 }
@@ -21,9 +19,52 @@ html,body{
 
 @media (max-width: 767px) {
   .sidebar_filter_search_icon {
-    display: none; 
+    display: none;
   }
-  .sidebar_filter_search_input{
+
+  .sidebar_filter_search_input {
     padding-left: 3px;
+  }
+}
+
+
+
+
+/* today task form adding loading button */
+.laoding_svg {
+  width: 1.45em;
+  transform-origin: center;
+  animation: rotate 2s linear infinite;
+}
+
+.laoding_circle {
+  fill: none;
+  stroke: #ffffff;
+  stroke-width: 3;
+  stroke-dasharray: 1, 200;
+  stroke-dashoffset: 0;
+  stroke-linecap: round;
+  animation: dash 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+
+  50% {
+    stroke-dasharray: 90, 200;
+    stroke-dashoffset: -35px;
+  }
+
+  100% {
+    stroke-dashoffset: -125px;
   }
 }

@@ -5,7 +5,7 @@ import AddTodayTaskList from "./today-task-list/AddTodayTaskList";
 
 function Foreground() {
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full relative">
       <Routes>
         {/* --- today task routing section --- */}
         <Route path="/today-task">
