@@ -11,7 +11,7 @@ function App() {
           {/* --- sidebar navigation --- */}
           <div className='h-full lg:w-1/5 md:w-1/4 w-37 py-5 px-2' >
             <Sidebar/>
-          </div>
+          </div> 
 
           {/* --- foreground dashboard --- */}
           <div className='h-full flex-grow py-5 px-2 ' >

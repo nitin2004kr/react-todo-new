@@ -86,7 +86,7 @@ function TodayTaskList() {
   // filter all completed task form all tasks
   const allCompletedTask = taskData.filter(task => task.taskCompleted === true);
   // filter all completed task form all tasks
-  const allPendingTask = taskData.length - allCompletedTask.length;
+  const allPendingTask = taskData.length - allCompletedTask.length;    
 
 
 
