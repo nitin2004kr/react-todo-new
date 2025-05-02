@@ -74,7 +74,7 @@ function Deadline({ deadline, onDeadlineChange }) {
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <DemoContainer components={["TimePicker"]}>
               <TimePicker
-                label="Select the time within a day for your task."
+                label="Select Time"
                 sx={{ width: "100%" }}
                 onChange={handleTimeChange}
               />

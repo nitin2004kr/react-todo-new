@@ -47,6 +47,7 @@ function TodayTaskList() {
 
     let formattedTime = format(new Date(), "MMM d 'at' h:mm a");
     const checked = e.target.checked;
+    console.log('checkked  = ', checked)
     if (checked) {
       newData = { ...task, taskCompleted: true, completedAt: formattedTime };
       setTaskComplete(true);
@@ -56,6 +57,10 @@ function TodayTaskList() {
         setShowConfirUncheckedTaskPopUp(true);
       }, 2000);
     } else {
+
+      setTimeout(() => {
+        setShowConfirUncheckedTaskPopUp(true);
+      }, 2000);
       if (showConfirUncheckedTaskPopUp) {
         setShowIncompleteTaskPopUp(true);
       }
@@ -98,7 +103,7 @@ function TodayTaskList() {
       <div
         className={`h-full transition-[width] duration-500 ease-in-out flex flex-col ${isVisible ? "w-[50%]" : "w-[100%]"}`}
       >
-
+        {/* --- task info - pending, completed --- */}
         <div className='flex justify-between items-center'>
           <h1 className="text-4xl font-bold ">Today Tasks {`(${taskData.length})`}</h1>
           <div className="mx-5 text-right font-semibold">
@@ -108,25 +113,26 @@ function TodayTaskList() {
         </div>
 
         {/* --- search/add todo task --- */}
-        <div className="flex mt-10 justify-between">
-          {/* --- search input box --- */}
-          <div className="relative w-1/3">
-            <div className="sidebar_filter_search_icon px-3 absolute left-2 inset-y-0 flex items-center">
-              <IoSearchSharp fontSize={"15px"} color="grey" />
+        {
+          taskData?.length > 0 &&
+          <div className="flex mt-10 justify-between">
+            {/* --- search input box --- */}
+            <div className="relative w-1/3">
+              <div className="sidebar_filter_search_icon px-3 absolute left-2 inset-y-0 flex items-center">
+                <IoSearchSharp fontSize={"15px"} color="grey" />
+              </div>
+
+              <input
+                className="sidebar_filter_search_input appearance-none border-2 pl-10 border-gray-300 transition-colors rounded-md w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none"
+                id="username"
+                type="text"
+                placeholder="Search Task"
+                onChange={(e) => setSearchedText(e.target.value)}
+              />
             </div>
 
-            <input
-              className="sidebar_filter_search_input appearance-none border-2 pl-10 border-gray-300 transition-colors rounded-md w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none"
-              id="username"
-              type="text"
-              placeholder="Search Task"
-              onChange={(e) => setSearchedText(e.target.value)}
-            />
-          </div>
+            {/* --- add new task button show only if task available --- */}
 
-          {/* --- add new task button show only if task available --- */}
-          {
-            taskData?.length > 0 &&
             <div className="relative bg-blue-500 rounded-md mx-3 px-4 py-2 hover:bg-blue-600">
               <div className="sidebar_filter_search_icon absolute left-2 inset-y-0 flex items-center ">
                 <FaPlus fontSize={"14px"} color="white" />
@@ -138,10 +144,10 @@ function TodayTaskList() {
                 Add New Task
               </NavLink>
             </div>
-          }
-        </div>
+          </div>
+        }
 
-        {/* --- Tasks ---  */}
+        {/* --- All Tasks ---  */}
         <div className="mt-6 flex flex-col flex-1 overflow-y-auto">
           {/* -- dynamic task rendering --  */}
           {filteredData?.length > 0 ? (filteredData?.map((task) => (
@@ -215,7 +221,7 @@ function TodayTaskList() {
             transition={{ duration: 0.5 }}
             className="w-1/2 h-full px-8"
           >
-            <div className="">
+            <div className="flex h-full">
               <ViewTodayTaskList closeTaskList={handleCloseTaskList} taskid={taskId} />
             </div>
           </motion.div>

@@ -68,3 +68,12 @@ body {
     stroke-dashoffset: -125px;
   }
 }
+
+
+input[type="file"] {
+  color: #fff;
+  /* background-color: #4f46e5; */
+  padding: 8px;
+  border-radius: 6px;
+  font-family: sans-serif;
+}
