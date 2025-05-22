@@ -4,9 +4,14 @@ import { useDispatch, useSelector } from "react-redux";
 import DeleteModal from "./utils/DeleteModal";
 import { deleteTodayTaskTodo, getTodayTaskTodo } from "../../../redux/actions/todayTask/todayTaskAction";
 import { toast } from "react-toastify";
+import AttachmentFilePreview from "./utils/AttachmentFilePreview";
+import { NavLink } from "react-router";
+import DOMPurify from 'dompurify';
 
 function ViewTodayTaskList({ closeTaskList, taskid }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false); // - state to handle to show the delete modal
+  const [showAttachmentPreview, setShowAttachmentPreview] = useState(false); // -- state to show the attachments
+
   const dispatch = useDispatch();
   const data = useSelector((state) => state.todayTask);
   const { loading, error, taskData } = data;
@@ -14,10 +19,11 @@ function ViewTodayTaskList({ closeTaskList, taskid }) {
   const task = taskData.filter((t) => t.id === taskid);
   const [formData, setFormData] = useState(task);
   // destructing formData fields
-  const { id, title, description, priority, recurring_task, list, completedAt, taskCompleted, deadline, uploadFile } =
+  const { id, title, description, priority, recurring_task, list, completedAt, createdAt, taskCompleted, deadline, uploadFile } =
     formData[0];
 
-  console.log('uplaoded files = ',  uploadFile);
+  const descriptionSanetizedData = DOMPurify.sanitize(description);
+
 
   // close viewTaskComponet handle
   const closeTaskListComponent = (data) => {
@@ -35,9 +41,14 @@ function ViewTodayTaskList({ closeTaskList, taskid }) {
     setShowDeleteModal(false)
   };
 
+  // close the preview modal 
+  const closeAttachmentPreview = (close) => {
+    setShowAttachmentPreview(close);
+  };
+
   return (
     <div className="w-full h-full bg-zinc-200 rounded-xl flex flex-col flex-1 px-4 py-3 relative overflow-hidden">
-      {/* --- heading ---  */}
+      {/* --- heading / close icon ---  */}
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-zinc-700">Task {taskCompleted ? 'Completed' : ''} :</h1>
         <div>
@@ -65,14 +76,10 @@ function ViewTodayTaskList({ closeTaskList, taskid }) {
       {/* --- taks description ---  */}
       <div className="relative mx-3 mt-3">
         <label className="font-semibold">Description</label>
-        <textarea
-          className="sidebar_filter_search_input appearance-none border-b-2 border-gray-300 transition-colors rounded-md w-full py-2 px-1 text-gray-800 leading-tight focus:outline-none"
-          id="description"
-          name="description"
-          type="text"
-          defaultValue={description}
-          readonly
-        />
+        <div
+          className="sidebar_filter_search_input border-b-2 border-gray-300 transition-colors rounded-md w-full py-2 px-1 text-gray-800 leading-tight"
+          dangerouslySetInnerHTML={{ __html: descriptionSanetizedData }}
+        ></div>
       </div>
 
       {/* --- taks priority / list ---  */}
@@ -133,29 +140,49 @@ function ViewTodayTaskList({ closeTaskList, taskid }) {
         </div>
       </div>
 
-      {/* --- completed at ---  */}
-      {completedAt &&
+
+      {/* --- taks completed at / created at ---  */}
+      <div className="flex justify-between items-center mx-3 mt-5">
+        {/* --- created at ---  */}
         <div className="relative mx-3 mt-3">
-          <label className="font-semibold">Completed At</label>
+          <label className="font-semibold">Created At</label>
           <input
             className="sidebar_filter_search_input appearance-none border-b-2 border-gray-300 transition-colors rounded-md w-full py-2 text-gray-800 leading-tight focus:outline-none"
             id="completedAt"
             name="completedAt"
             type="text"
-            defaultValue={completedAt}
+            defaultValue={createdAt}
             readonly
           />
         </div>
-      }
+
+        {/* --- completed at ---  */}
+        {completedAt &&
+          <div className="relative mx-3 mt-3">
+            <label className="font-semibold">Completed At</label>
+            <input
+              className="sidebar_filter_search_input appearance-none border-b-2 border-gray-300 transition-colors rounded-md w-full py-2 text-gray-800 leading-tight focus:outline-none"
+              id="completedAt"
+              name="completedAt"
+              type="text"
+              defaultValue={completedAt}
+              readonly
+            />
+          </div>
+        }
+      </div>
+
 
       {/* ----- attachements file ----- */}
-      <div className="mt-8 mx-3 flex justify-start items-center">
-        <label className="font-semibold">View Attachment</label>
-        <div className="mx-5 border-1 bg-yellow-300 text-sx py-1 px-10 rounded-sm font-semibold hover:bg-yellow-400">
-          <button>Preview</button>
+      {
+        uploadFile.length !== 0 &&
+        <div className="mt-8 mx-3 flex justify-start items-center">
+          <label className="font-semibold">View Attachment</label>
+          <div className="mx-5 border-1 bg-yellow-300 text-sx py-1 px-10 rounded-sm font-semibold hover:bg-yellow-400" onClick={() => setShowAttachmentPreview(true)}>
+            <button type='button' >{uploadFile.length > 1 ? 'Preview All' : 'Preview'}</button>
+          </div>
         </div>
-
-      </div>
+      }
 
       {/* ---- delete/ update task ----  */}
       <div className="flex justify-evenly items-center mt-15 absolute bottom-10 w-full">
@@ -164,9 +191,11 @@ function ViewTodayTaskList({ closeTaskList, taskid }) {
             Delete
           </div>
         </button>
-        <div className="border-1 bg-yellow-300 text-sx py-1 px-10 rounded-sm font-semibold hover:bg-yellow-400">
-          Update
-        </div>
+        <NavLink to={`edit-today-task/${id}`}>
+          <div className="border-1 bg-yellow-300 text-sx py-1 px-10 rounded-sm font-semibold hover:bg-yellow-400">
+            Update
+          </div>
+        </NavLink>
       </div>
 
 
@@ -174,6 +203,11 @@ function ViewTodayTaskList({ closeTaskList, taskid }) {
       {
         showDeleteModal &&
         <DeleteModal taskTitle={title} handledeleteTask={handledeleteTask} />
+      }
+
+      {
+        showAttachmentPreview &&
+        <AttachmentFilePreview uploadFile={uploadFile} closeAttachmentPreview={closeAttachmentPreview} />
       }
     </div>
   );

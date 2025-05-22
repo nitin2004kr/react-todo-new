@@ -77,3 +77,33 @@ input[type="file"] {
   border-radius: 6px;
   font-family: sans-serif;
 }
+
+
+.swiper {
+  width: 100%;
+}
+
+.swiper-pagination {
+  position: relative !important;
+  top: 0 !important;
+}
+
+
+/* custom-scroll.css */
+.custom-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #3b82f6; /* Tailwind's blue-500 */
+  border-radius: 4px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #2563eb; /* Tailwind's blue-600 */
+}

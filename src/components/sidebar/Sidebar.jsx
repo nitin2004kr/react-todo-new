@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Slant as Hamburger } from "hamburger-react";
 import { IoSearch } from "react-icons/io5";
 import { MdOutlineDateRange } from "react-icons/md";
@@ -10,16 +10,29 @@ import { FaPlus } from "react-icons/fa6";
 import { IoIosSettings } from "react-icons/io";
 import { FaSignOutAlt } from "react-icons/fa";
 import { NavLink } from "react-router";
+import { AiFillHome } from "react-icons/ai";
+import { useSelector } from "react-redux";
 
 function Sidebar() {
   const [isOpen, setOpen] = useState(false);
+  const [todayTaskLength, setTodayTaskLength] = useState(false); // - state to hold the today tasks length to show in sidebar
+
+  // getting the all task 
+  const tasks = useSelector((state) => state.todayTask);
+  const { taskData } = tasks;
+
+  useEffect(() => {
+    setTodayTaskLength(taskData.length);
+  }, [tasks])
 
   return (
     <div className="w-full h-full bg-zinc-200 rounded-xl">
       {/* --- menu heading ---  */}
       <div className="flex justify-between items-center mx-3">
         <h2 className="font-semibold sm:text-2xl lg:text-xl md:text-xl">
-          Menu
+          <NavLink to='/'>
+            <AiFillHome />
+          </NavLink>
         </h2>
         <div>
           <Hamburger
@@ -55,8 +68,13 @@ function Sidebar() {
         {/* -- upcoming --  */}
         <div className="flex justify-between px-2 my-1  rounded-md py-1">
           <div className="flex justify-center items-center gap-3">
-            <FaAnglesRight fontSize={"12px"} color="grey" />
-            <p className="font-normal text-sm text-zinc-700">Upcoming</p>
+            <NavLink
+              to="/dashboard/upcoming-task"
+              className="flex justify-center items-center gap-3"
+            >
+              <FaAnglesRight fontSize={"12px"} color="grey" />
+              <p className="font-normal text-sm text-zinc-700">Upcoming</p>
+            </NavLink>
           </div>
 
           <div className="bg-zinc-300 rounded-sm w-1/10 flex justify-center items-center">
@@ -68,7 +86,7 @@ function Sidebar() {
         <div className="flex justify-between px-2 my-2 bg-zinc-300 rounded-md py-1">
           <div className="flex justify-center items-center gap-3">
             <NavLink
-              to="/today-task"
+              to="/dashboard/today-task"
               className="flex justify-center items-center gap-3"
             >
               <LuListTodo fontSize={"14px"} color="grey" />
@@ -77,7 +95,7 @@ function Sidebar() {
           </div>
 
           <div className="bg-zinc-200 rounded-sm w-1/10 flex justify-center items-center">
-            <p className="text-zinc-900 font-medium text-xs">5</p>
+            <p className="text-zinc-900 font-medium text-xs">{todayTaskLength}</p>
           </div>
         </div>
 

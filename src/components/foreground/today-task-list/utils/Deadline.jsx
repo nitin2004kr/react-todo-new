@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
@@ -13,18 +13,41 @@ import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
 import Box from "@mui/material/Box";
 
-function Deadline({ deadline, onDeadlineChange }) {
+function Deadline({ deadline, onDeadlineChange, editValue }) {
+  const [dateValue, setDateValue] = useState(null);
+  const [weekValue, setWeekValue] = useState('');
+  const [timeValue, setTimeValue] = useState(null);
+
+  console.log('deadline - ', editValue)
+  // date change 
   const handleDateChange = (newValue) => {
-    onDeadlineChange(newValue);
+    const formattedTime = newValue.format('DD-MM-YYYY')
+    console.log('datechange = ', formattedTime);
+    onDeadlineChange(formattedTime);
   };
 
+  // week day change 
   const handleWeekDayChange = (event) => {
     onDeadlineChange(event.target.value);
   };
 
+  // time change 
   const handleTimeChange = (newValue) => {
-    onDeadlineChange(newValue);
+    const formattedTime = newValue.format('hh:mm A')
+    onDeadlineChange(formattedTime);
   };
+
+
+  // getting the edit value in respective fiels based on deadline 
+  useEffect(() => {
+    if (deadline === 'montly' && editValue) {
+      setDateValue(dayjs(editValue, 'DD-MM-YYYY'));
+    } else if (deadline === 'weekly') {
+      setWeekValue(editValue || '');
+    } else if (deadline === 'daily' && editValue) {
+      setTimeValue(dayjs(editValue, 'hh:mm A'));
+    }
+  }, [editValue, deadline]);
 
   return (
     <div>
@@ -37,6 +60,13 @@ function Deadline({ deadline, onDeadlineChange }) {
                 label="Select Date"
                 onChange={handleDateChange}
                 sx={{ width: "100%" }}
+                value={dateValue}
+                format="DD-MM-YYYY"
+                slotProps={{
+                  textField: {
+                    inputFormat: "DD-MM-YYYY"
+                  }
+                }}
               />
             </DemoContainer>
           </LocalizationProvider>
@@ -51,14 +81,15 @@ function Deadline({ deadline, onDeadlineChange }) {
               labelId="demo-select-small-label"
               id="demo-select-small"
               onChange={handleWeekDayChange}
+              value={weekValue}
             >
               <MenuItem value="">
                 <em>Select Week Day</em>
               </MenuItem>
               <MenuItem value={"Monday"}>Monday</MenuItem>
               <MenuItem value={"Tuesday"}>Tuesday</MenuItem>
-              <MenuItem value={"Wednesday"}>Webnesday</MenuItem>
-              <MenuItem value={"Thrusday"}>Thrusday</MenuItem>
+              <MenuItem value={"Wednesday"}>Wednesday</MenuItem>
+              <MenuItem value={"Thursday"}>Thursday</MenuItem>
               <MenuItem value={"Friday"}>Friday</MenuItem>
               <MenuItem value={"Saturday"}>Saturday</MenuItem>
               <MenuItem value={"Sunday"}>Sunday</MenuItem>
@@ -77,6 +108,7 @@ function Deadline({ deadline, onDeadlineChange }) {
                 label="Select Time"
                 sx={{ width: "100%" }}
                 onChange={handleTimeChange}
+                value={timeValue}
               />
             </DemoContainer>
           </LocalizationProvider>

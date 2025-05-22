@@ -1,14 +1,20 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import Box from "@mui/material/Box";
 import FormControl from "@mui/material/FormControl";
 import NativeSelect from "@mui/material/NativeSelect";
 import Deadline from "./utils/Deadline";
 import { useDispatch, useSelector } from "react-redux";
-import { createTodayTaskTodo } from "../../../redux/actions/todayTask/todayTaskAction";
+import { createTodayTaskTodo, updateTodayTaskTodo } from "../../../redux/actions/todayTask/todayTaskAction";
 import ButtonLoader from "../../utiles/ButtonLoader";
 import { toast } from "react-toastify";
 import FileUplaods from "./utils/FileUplaods";
+import FroalaEditor from "react-froala-wysiwyg";
+import 'froala-editor/css/froala_editor.pkgd.min.css';
+import 'froala-editor/css/froala_style.min.css';
+import 'froala-editor/js/plugins/char_counter.min.js';
+import 'froala-editor/js/plugins/save.min.js';
+import dayjs from "dayjs";
 
 
 function AddTodayTaskList() {
@@ -16,21 +22,35 @@ function AddTodayTaskList() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const Submitstatus = useSelector((state) => state.todayTask);
-  const { loading, error } = Submitstatus;
+  const { loading, error, taskData } = Submitstatus;
 
+  // getting the data for edit 
+  const editTaskData = taskData.filter((t) => t.id === id);
 
   // -- initializing the form data states
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    priority: "high",
-    recurring_task: "",
-    list: "personal",
-    deadline: "",
-    taskCompleted: null,
-    completedAt: '',
-    uploadFile: [],
-  });
+  const [formData, setFormData] = useState({})
+  const [isClient, setIsClient] = useState(false); // state for holding the editor mount to display
+
+  useEffect(() => {
+    if (id) {
+      setFormData(editTaskData[0]) // filling the data if it is for edit 
+    } else {
+      const savedDesc = localStorage.getItem("savedDesc") || ""; // getting the backup data if it available in the local for description
+      const createdDate = dayjs().format('DD-MM-YYYY');
+      setFormData({
+        title: "",
+        description: savedDesc,
+        priority: "high",
+        recurring_task: "",
+        list: "personal",
+        deadline: "",
+        taskCompleted: null,
+        completedAt: '',
+        createdAt: createdDate,
+        uploadFile: [],
+      })
+    }
+  }, [id])
 
   // destructing formData fields
   const {
@@ -39,8 +59,15 @@ function AddTodayTaskList() {
     priority,
     recurring_task,
     list,
+    uploadFile,
+    deadline
   } = formData;
 
+
+  // initialize the the floala editor on component mount
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   // -- setting the form data into their states
   const handleFormData = (e) => {
@@ -70,24 +97,34 @@ function AddTodayTaskList() {
   // -- submitting the form data into the firebase firestore
   const handleSubmit = (e) => {
     e.preventDefault();
-    dispatch(createTodayTaskTodo(formData));
+
+    if (id) {
+      dispatch(updateTodayTaskTodo(formData));
+    } else {
+      dispatch(createTodayTaskTodo(formData));
+    }
 
     if (!loading) {
-      toast.success('Your Today Task Created!');
-      navigate('/today-task ')
+      if (id) {
+        toast.success('Task Updated!');
+      } else {
+        toast.success('Your Today Task Created!');
+      }
+      navigate('/dashboard/today-task ')
     } else if (error) {
       toast.error('something went wrong!');
     };
+    localStorage.removeItem('savedDesc');  // removing backup data of description from storage
   };
 
   return (
     <>
-      <div className="w-full h-full border-2 border-zinc-400 rounded-lg">
+      <div className="w-full h-full border-2 border-zinc-400 rounded-lg overflow-hidden">
         <div className="text-2xl font-bold my-2 mx-5 text-zinc">
           <h1>Add Today Task Form</h1>
         </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col">
+        <form onSubmit={handleSubmit} className="flex flex-col h-[80vh] overflow-y-auto custom-scroll">
           <div id="form" className="form p-3 h-[85%]">
             {/* title  */}
             <div className="m-2">
@@ -106,17 +143,35 @@ function AddTodayTaskList() {
 
             {/* description  */}
             <div className="mx-2 mt-2">
-              <label className="text-zinc-900 font-semibold text-xl block">
+              <label className="text-zinc-900 font-semibold text-xl block mb-2">
                 Description
               </label>
-              <textarea
-                className="border-2 border-zinc-500 rounded-sm text-zinc-800 text-xm px-2 py-1  w-full mt-2 focus:shadow-xl"
-                type="text"
-                value={description}
-                placeholder="Task description (e.g., Design homepage)"
-                name='description'
-                onChange={handleFormData}
-              ></textarea>
+              {isClient && (<FroalaEditor
+                model={description} // controlled value
+                onModelChange={(content) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: content,
+                  }));
+                }}
+                config={{
+                  placeholderText: 'Task description (e.g., Here description goes..)',
+                  charCounterCount: true,
+                  charCounterMax: 350,
+                  saveInterval: 2000,
+                  height: '150',
+                  width: '1160',
+                  events: {
+                    "charCounter.exceeded": function () {
+                      alert('You have exceeded the maximum allowed characters!')
+                    },
+                    "save.before": function (html) {
+                      localStorage.setItem('savedDesc', html);
+                    },
+                  }
+                }}
+                tag="textarea"
+              />)}
             </div>
 
 
@@ -203,7 +258,7 @@ function AddTodayTaskList() {
 
                 {/* deadline */}
                 {
-                  recurring_task.length > 0 &&
+                  recurring_task?.length > 0 &&
                   <div className="mx-2 mt-2">
                     <label className="text-zinc-900 font-semibold text-xl block">
                       Deadline
@@ -211,6 +266,7 @@ function AddTodayTaskList() {
                     <Deadline
                       deadline={recurring_task}
                       onDeadlineChange={handleDeadlineChange}
+                      editValue={deadline}
                     />
                   </div>
                 }
@@ -218,16 +274,14 @@ function AddTodayTaskList() {
 
               {/* --- upload component --- */}
               <div className="w-3/4 h-full pl-5 flex gap-5 bg-zinc-200 rounded-2xl mt-3">
-                <FileUplaods handleUploadChange={handleUploadChange} />
+                <FileUplaods handleUploadChange={handleUploadChange} editUploadData={uploadFile} />
               </div>
             </div>
-
-
           </div>
 
           {/* -- submit button -- */}
-          <div className="mx-5 absolute bottom-4">
-            <button type='submit' className="text-white text-xl my-1 py-1 px-3 bg-blue-600  rounded-sm hover:bg-blue-500 flex justify-center items-center">{false ? <ButtonLoader /> : <div>Submit</div>}</button>
+          <div className="mx-5 absolute bottom-2 ">
+            <button type='submit' className="text-white text-xl my-1 py-1 px-3 bg-blue-600  rounded-sm hover:bg-blue-500 flex justify-center items-center">{false ? <ButtonLoader /> : <div>{id ? 'Update' : 'Submit'}</div>}</button>
           </div>
         </form>
 

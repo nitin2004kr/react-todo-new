@@ -22,12 +22,15 @@ function TodayTaskList() {
   const [searchedText, setSearchedText] = useState(''); // - state for to filter out the data form taskData 
   const [showConfirUncheckedTaskPopUp, setShowConfirUncheckedTaskPopUp] = useState(false); // - state for to show the pop-up for confirmation of unchecked the completed task
   const [showIncompleteTaskPopUp, setShowIncompleteTaskPopUp] = useState(false); // - state for to show the pop-up after the confirmation of timmer for incomplete task again
-
+  const [taskStatusFilter, setTaskStatusFilter] = useState(''); // - state for to hold the task status filtered value 
+  const [taskCategoryFilter, setTaskCategoryFilter] = useState(''); // - state for to hold the task Category filtered value 
+  const [allTask, setAllTask] = useState([]); // - state for hold all type of task, completed, incomplte, all
 
   // getting the all task 
   const tasks = useSelector((state) => state.todayTask);
-  const dispatch = useDispatch();
   const { loading, error, taskData } = tasks;
+  const dispatch = useDispatch();
+
 
   // calling the action to retrive the fresh data
   useEffect(() => {
@@ -47,7 +50,6 @@ function TodayTaskList() {
 
     let formattedTime = format(new Date(), "MMM d 'at' h:mm a");
     const checked = e.target.checked;
-    console.log('checkked  = ', checked)
     if (checked) {
       newData = { ...task, taskCompleted: true, completedAt: formattedTime };
       setTaskComplete(true);
@@ -86,14 +88,44 @@ function TodayTaskList() {
     setShowIncompleteTaskPopUp(false);
   };
 
-  // filter the data as per searched input
-  const filteredData = taskData.filter(task => task.title.toLowerCase().startsWith(searchedText.toLowerCase()));
+  // filter the data as per searched input and rendering in lists
+  useEffect(() => {
+    let filteredData = taskData;
+
+    // First apply search filter if there's search text
+    if (searchedText || taskStatusFilter === 'all') {
+      filteredData = filteredData.filter(task =>
+        task.title.toLowerCase().startsWith(searchedText.toLowerCase())
+      );
+    }
+
+    // Then apply status filter
+    if (taskStatusFilter === 'completed') {
+      filteredData = filteredData.filter(task => task.taskCompleted === true);
+    } else if (taskStatusFilter === 'incomplete') {
+      filteredData = filteredData.filter(task => task.taskCompleted === false || task.taskCompleted === null);
+    }
+
+    setAllTask(filteredData);
+  }, [searchedText, taskStatusFilter, taskData]);
+
   // filter all completed task form all tasks
   const allCompletedTask = taskData.filter(task => task.taskCompleted === true);
-  // filter all completed task form all tasks
+  // filter all pending task form all tasks
   const allPendingTask = taskData.length - allCompletedTask.length;
 
+  // method of task status filter
+  const handleTaskStatusFilter = (e) => {
+    const selectedValue = e.target.value;
+    setTaskStatusFilter(selectedValue);
+  };
 
+  // method of task category fileter
+  const handleTaskCategroyFilter = (e) => {
+    const selectedValue = e.target.value;
+    console.log(selectedValue)
+    setTaskCategoryFilter(selectedValue);
+  };
 
 
 
@@ -112,33 +144,61 @@ function TodayTaskList() {
           </div>
         </div>
 
-        {/* --- search/add todo task --- */}
+        {/* --- search/add/filters todo task --- */}
         {
           taskData?.length > 0 &&
           <div className="flex mt-10 justify-between">
-            {/* --- search input box --- */}
-            <div className="relative w-1/3">
-              <div className="sidebar_filter_search_icon px-3 absolute left-2 inset-y-0 flex items-center">
-                <IoSearchSharp fontSize={"15px"} color="grey" />
+            <div className="flex justify-between w-1/2">
+              {/* --- search input box --- */}
+              <div className="relative w-3/5">
+                <div className="sidebar_filter_search_icon px-3 absolute left-2 inset-y-0 flex items-center">
+                  <IoSearchSharp fontSize={"15px"} color="grey" />
+                </div>
+
+                <input
+                  className="sidebar_filter_search_input appearance-none border-2 pl-10 border-gray-300 transition-colors rounded-md w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none"
+                  id="username"
+                  type="text"
+                  placeholder="Search Task"
+                  onChange={(e) => setSearchedText(e.target.value)}
+                />
               </div>
 
-              <input
-                className="sidebar_filter_search_input appearance-none border-2 pl-10 border-gray-300 transition-colors rounded-md w-full py-2 px-3 text-gray-800 leading-tight focus:outline-none"
-                id="username"
-                type="text"
-                placeholder="Search Task"
-                onChange={(e) => setSearchedText(e.target.value)}
-              />
+              {/* filter task status */}
+              <div className="flex-1 items-center flex">
+                <div className="mx-3 flex item-center">
+                  <select className="bg-blue-500 text-white font-semibold px-2 py-2 rounded-sm border-0 [&>option]:bg-white [&>option]:text-black" onChange={(e) => handleTaskStatusFilter(e)}>
+                    <option hidden className="bg-white text-black">Task status</option>
+                    <option value={"completed"}>Completed</option>
+                    <option value={"incomplete"}>Incomplete</option>
+                    <option value={"all"}>All</option>
+                  </select>
+                </div>
+
+
+                {/* filter task category */}
+                {
+                  taskStatusFilter === 'incomplete' &&
+                  <div className="flex item-center">
+                    <select className="bg-blue-500 text-white font-semibold px-2 py-2 rounded-sm border-0 [&>option]:bg-white [&>option]:text-black" onChange={(e) => handleTaskCategroyFilter(e)}>
+                      <option hidden className="bg-white text-black">Category</option>
+                      <option value={"deadline"}>Deadline</option>
+                      <option value={"created_at"}>Created At</option>
+                    </select>
+                  </div>
+                }
+
+
+              </div>
             </div>
 
             {/* --- add new task button show only if task available --- */}
-
             <div className="relative bg-blue-500 rounded-md mx-3 px-4 py-2 hover:bg-blue-600">
               <div className="sidebar_filter_search_icon absolute left-2 inset-y-0 flex items-center ">
                 <FaPlus fontSize={"14px"} color="white" />
               </div>
               <NavLink
-                to="/today-task/add-today-task"
+                to="/dashboard/today-task/add-today-task"
                 className=" text-white font-bold ml-3"
               >
                 Add New Task
@@ -147,11 +207,12 @@ function TodayTaskList() {
           </div>
         }
 
+
         {/* --- All Tasks ---  */}
         <div className="mt-6 flex flex-col flex-1 overflow-y-auto">
           {/* -- dynamic task rendering --  */}
-          {filteredData?.length > 0 ? (filteredData?.map((task) => (
-            <div className="flex justify-between px-2 my-1 py-2 border-b-2 border-zinc-300" key={task.id}>
+          {allTask?.length > 0 ? (allTask?.map((task) => (
+            <div className="flex justify-between px-2  py-3 border-b-2 border-zinc-300 hover:bg-zinc-200" key={task.id}>
               <div className="flex justify-center items-center gap-3">
                 <input type="checkbox" checked={task.taskCompleted} onChange={(e) => handleChecked(e, task.id)} />
                 <div className="group relative">
