@@ -47,6 +47,7 @@ function AddTodayTaskList() {
         taskCompleted: null,
         completedAt: '',
         createdAt: createdDate,
+        note: '',
         uploadFile: [],
       })
     }

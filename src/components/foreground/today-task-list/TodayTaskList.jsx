@@ -14,6 +14,8 @@ import Confetti from "react-confetti";
 import { format } from 'date-fns';
 import { GoDotFill } from "react-icons/go";
 import { PiWarningCircleLight } from "react-icons/pi";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import EmailShare from "../../utiles/EmailShare";
 
 function TodayTaskList() {
   const [isVisible, setIsVisible] = useState(false); // - to show or hide the view task component
@@ -25,6 +27,9 @@ function TodayTaskList() {
   const [taskStatusFilter, setTaskStatusFilter] = useState(''); // - state for to hold the task status filtered value 
   const [taskCategoryFilter, setTaskCategoryFilter] = useState(''); // - state for to hold the task Category filtered value 
   const [allTask, setAllTask] = useState([]); // - state for hold all type of task, completed, incomplte, all
+  const [showThreeDotModal, setShowThreeDotModal] = useState(false); // - state for to open the three dot modal
+  const [modalHoverId, setModalHoverId] = useState(null); // - state for to open the three dot modal
+  const [showNote, setShowNote] = useState(false); // - state for to open the three dot modal
 
   // getting the all task 
   const tasks = useSelector((state) => state.todayTask);
@@ -39,6 +44,7 @@ function TodayTaskList() {
 
   const handleCloseTaskList = (data) => {
     setIsVisible(data);
+    setShowNote(false);
   };
 
   // method for complete task to perform actions
@@ -127,6 +133,25 @@ function TodayTaskList() {
     setTaskCategoryFilter(selectedValue);
   };
 
+  // method for to show three dot modal when mouse enters
+  const handleShowThreeDotModal = (id) => {
+    setModalHoverId(id)
+    setShowThreeDotModal(true);
+  }
+
+  // method for to hide three dot modal when mouse leaave
+  const handleHideThreeDotModal = () => {
+    setModalHoverId(null)
+    setShowThreeDotModal(false);
+  }
+
+  //  method for to add notes in the task
+  const handleNoteChange = (id) => {
+    setIsVisible(true);
+    setTaskId(id);
+    setShowNote(true);
+  }
+
 
 
 
@@ -208,16 +233,17 @@ function TodayTaskList() {
         }
 
 
-        {/* --- All Tasks ---  */}
+        {/* --- All Tasks / completed at / three dot ---  */}
         <div className="mt-6 flex flex-col flex-1 overflow-y-auto">
           {/* -- dynamic task rendering --  */}
           {allTask?.length > 0 ? (allTask?.map((task) => (
-            <div className="flex justify-between px-2  py-3 border-b-2 border-zinc-300 hover:bg-zinc-200" key={task.id}>
+            <div className={`flex justify-between px-2  py-3 border-b-2 border-zinc-300 hover:bg-zinc-200 ${isVisible && taskId === task.id ? "bg-zinc-200" : ""}`} key={task.id}>
               <div className="flex justify-center items-center gap-3">
                 <input type="checkbox" checked={task.taskCompleted} onChange={(e) => handleChecked(e, task.id)} />
                 <div className="group relative">
                   <p className={`flex items-center gap-1 font-medium text-sm text-zinc-700 ${task.taskCompleted ? 'line-through' : ''}`}>
-                    <GoDotFill className={`${task.priority === 'high' ? 'text-red-500' : task.priority === 'medium' ? 'text-yellow-500' : 'text-green-500'}`} />{task.title}
+                    <GoDotFill className={`${task.priority === 'high' ? 'text-red-500' : task.priority === 'medium' ? 'text-yellow-500' : 'text-green-500'}`} />
+                    {task.title}
                   </p>
                   <div className="absolute bottom-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ">
                     <div className=" text-zinc-800 text-xs rounded whitespace-nowrap">
@@ -235,6 +261,49 @@ function TodayTaskList() {
                     Completed on <span className="font-semibold">{task.completedAt}</span>
                   </div>
                 }
+
+                {/* three dot  */}
+                <div className="relative">
+                  <BsThreeDotsVertical onMouseEnter={() => handleShowThreeDotModal(task.id)} />
+
+                  {
+                    showThreeDotModal && modalHoverId === task.id &&
+                    <div className="absolute right-[20px] bg-white py-1 border-2 border-zinc-300 rounded-md min-h-[120px] w-[100px]"
+                      onMouseLeave={() => handleHideThreeDotModal()}
+                    >
+                      <ul className="flex justify-evenly gap-1 flex-col h-full">
+                        <li className="px-2 hover:bg-zinc-200 cursor-pointer text-sm" onClick={() => handleNoteChange(task.id)}>{task?.note?.length > 0 ? "Edit" : "Add"} Note</li>
+                        <li className="px-2 mt-2 underline text-xs font-semibold text-zinc-400">Share via</li>
+                        <li className="hover:bg-zinc-200 cursor-pointer">
+                          <EmailShare
+                            btnText='Email'
+                            btnStyle='px-2 text-sm'
+                            mailSubject={`New Task Shared : "${task.title}"`}
+                            mailBody={
+                              `Hi [Recipient Name],
+
+                                [Sender Name] has shared a task with you.
+
+                                📌 Task: ${task.title}  
+                                📝 Description: ${task.description}  
+                                📅 Due Date: ${task.deadline}  
+                                ⏱️ Priority: ${task.priority}
+                                📃 List: ${task.list} 
+
+                                You can open this task and check out full source of this task directly in the app.
+
+                                Best regards,  
+                                The Todo App Team
+                            `}
+                          />
+                        </li>
+                        <li className="px-2 hover:bg-zinc-200 cursor-pointer text-sm">Whatsapp</li>
+                        <li className="px-2 hover:bg-zinc-200 cursor-pointer text-sm">Export</li>
+                      </ul>
+                    </div>
+                  }
+                </div>
+
                 <div
                   className="flex justify-center items-center"
                   onClick={() => {
@@ -283,7 +352,7 @@ function TodayTaskList() {
             className="w-1/2 h-full px-8"
           >
             <div className="flex h-full">
-              <ViewTodayTaskList closeTaskList={handleCloseTaskList} taskid={taskId} />
+              <ViewTodayTaskList closeTaskList={handleCloseTaskList} taskid={taskId} showNote={showNote} />
             </div>
           </motion.div>
         )}

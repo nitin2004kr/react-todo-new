@@ -2,25 +2,29 @@ import React, { useEffect, useState } from "react";
 import { ImCross } from "react-icons/im";
 import { useDispatch, useSelector } from "react-redux";
 import DeleteModal from "./utils/DeleteModal";
-import { deleteTodayTaskTodo, getTodayTaskTodo } from "../../../redux/actions/todayTask/todayTaskAction";
+import { deleteTodayTaskTodo, getTodayTaskTodo, updateTodayTaskTodo } from "../../../redux/actions/todayTask/todayTaskAction";
 import { toast } from "react-toastify";
 import AttachmentFilePreview from "./utils/AttachmentFilePreview";
 import { NavLink } from "react-router";
 import DOMPurify from 'dompurify';
+import { MdCheckBox } from "react-icons/md";
+import { BiSolidEdit } from "react-icons/bi";
 
-function ViewTodayTaskList({ closeTaskList, taskid }) {
+function ViewTodayTaskList({ closeTaskList, taskid, showNote }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false); // - state to handle to show the delete modal
   const [showAttachmentPreview, setShowAttachmentPreview] = useState(false); // -- state to show the attachments
+  const [noteText, setNoteText] = useState(null); // -- state to hold note text
+  const [editNoteText, setEditNoteText] = useState(false); // -- state to active edit note text
 
   const dispatch = useDispatch();
   const data = useSelector((state) => state.todayTask);
   const { loading, error, taskData } = data;
 
   const task = taskData.filter((t) => t.id === taskid);
-  const [formData, setFormData] = useState(task);
+  const [formData, setFormData] = useState(task[0]);
   // destructing formData fields
-  const { id, title, description, priority, recurring_task, list, completedAt, createdAt, taskCompleted, deadline, uploadFile } =
-    formData[0];
+  const { id, title, description, priority, recurring_task, list, completedAt, createdAt, taskCompleted, deadline, uploadFile, note } =
+    formData;
 
   const descriptionSanetizedData = DOMPurify.sanitize(description);
 
@@ -45,6 +49,32 @@ function ViewTodayTaskList({ closeTaskList, taskid }) {
   const closeAttachmentPreview = (close) => {
     setShowAttachmentPreview(close);
   };
+
+  // method to save the note text in note key of form
+  const handleNoteChange = (e) => {
+    const notetext = e.target.value;
+    setNoteText(notetext);
+  };
+
+  // method to submit the note
+  const handleNoteSubmit = () => {
+    const updatedFormData = {
+      ...formData,
+      note: noteText
+    };
+    setFormData(updatedFormData);
+    dispatch(updateTodayTaskTodo(updatedFormData));
+    dispatch(getTodayTaskTodo());
+    toast.success('Task Noted!');
+  }
+
+  // to handle the edit note to active the note description form modal
+  useEffect(() => {
+    if (showNote) {
+      setEditNoteText(true);
+    }
+  }, [])
+
 
   return (
     <div className="w-full h-full bg-zinc-200 rounded-xl flex flex-col flex-1 px-4 py-3 relative overflow-hidden">
@@ -171,6 +201,22 @@ function ViewTodayTaskList({ closeTaskList, taskid }) {
           </div>
         }
       </div>
+
+      {/* --- taks note ---  */}
+      {(note?.length > 0 || showNote) && (
+        <div className="flex flex-col relative mx-3 mt-3 ">
+          <div className="flex justify-between items-center">
+            <label className="font-semibold">Write Note</label>
+            <div className="flex justify-around items-center gap-2">
+              {formData?.note?.length > 0 &&
+                <BiSolidEdit size={20} onClick={() => setEditNoteText(true)} />
+              }
+              <MdCheckBox size={20} onClick={handleNoteSubmit} />
+            </div>
+          </div>
+          <textarea className="px-2 mt-2 border-2 border-gray-300 appearance-none leading-tight focus:outline-none" placeholder="Write note here..." onChange={handleNoteChange} defaultValue={note} readOnly={!editNoteText}></textarea>
+        </div>
+      )}
 
 
       {/* ----- attachements file ----- */}
