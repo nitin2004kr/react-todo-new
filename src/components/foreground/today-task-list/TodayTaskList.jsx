@@ -16,6 +16,7 @@ import { GoDotFill } from "react-icons/go";
 import { PiWarningCircleLight } from "react-icons/pi";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import EmailShare from "../../utiles/EmailShare";
+import WhatsappShare from "../../utiles/Whatsapp";
 
 function TodayTaskList() {
   const [isVisible, setIsVisible] = useState(false); // - to show or hide the view task component
@@ -297,8 +298,26 @@ function TodayTaskList() {
                             `}
                           />
                         </li>
-                        <li className="px-2 hover:bg-zinc-200 cursor-pointer text-sm">Whatsapp</li>
-                        <li className="px-2 hover:bg-zinc-200 cursor-pointer text-sm">Export</li>
+                        <li className="hover:bg-zinc-200 cursor-pointer">
+                          <WhatsappShare
+                            btnText='WhatsApp'
+                            btnStyle='px-2 text-sm'
+                            message={
+                              `Hello There,
+                              This is Task Reminder for you!
+
+                                📌 Task: ${task.title}  
+                                📝 Description: ${task.description}  
+                                📅 Due Date: ${task.deadline}  
+                                ⏱️ Priority: ${task.priority}
+                                📃 List: ${task.list} 
+
+                               You can open this task and check out full source of this task directly in the app.
+                               Thankyou.`
+                            }
+                          />
+                        </li>
+                        {/* <li className="px-2 hover:bg-zinc-200 cursor-pointer text-sm">Export</li> */}
                       </ul>
                     </div>
                   }
